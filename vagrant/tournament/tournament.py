@@ -4,19 +4,22 @@
 #
 
 import psycopg2
+import bleach
 
+conn = 0
 
-def connect():
+def connect(close = False):
     """Connect to the PostgreSQL database.  Returns a database connection."""
-    conn = psycopg2.connect("dbname=tournament")
-
-    return conn
-
+    global conn = psycopg2.connect("dbname=tournament")
+    if close:
+      psycopg2.close()
+    else:
+      return conn
 
 def deleteMatches():
     """Remove all the match records from the database."""
     cur = conn.cursor()
-    query = "DROP tournament matches"
+    query = "DELETE tournament matches"
     cur.execute(query)
 
 def deletePlayers():
@@ -25,8 +28,12 @@ def deletePlayers():
     query = "DELETE tournament players"
     cur.execute(query)
 
-def countPlayers():
-    """Returns the number of players currently registered."""
+def countPlayers(region = '%'):
+    cur = conn.cursor()
+    region = bleach.clean(region)
+    query = 'SELECT count(name) FROM players WHERE region =  %s;' (region,)
+    cur.execute(query)
+
 
 
 def registerPlayer(name):

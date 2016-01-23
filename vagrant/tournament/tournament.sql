@@ -8,8 +8,10 @@
 
 CREATE table players(id serial primary key, name text, birthdate date, region text, team serial, points serial);
 
-CREATE table matches(id serial primary key, playerone text, playertwo text, playerthree text);
+CREATE table matches(id serial primary key, pone text, ptwo text, pthree text, region text);
 
 CREATE view playerpoints AS SELECT name, points FROM players ORDER BY points desc;
 
 CREATE view regionsview AS SELECT region, count(region) as num FROM players GROUP BY region ORDER BY num desc;
+
+CREATE view twomatch AS SELECT id, pone, ptwo, region FROM matches;

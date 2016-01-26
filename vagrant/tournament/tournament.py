@@ -41,6 +41,9 @@ def registerPlayer(name, birthdate = None, region = '', teamNumber = 0):
     Args:
       name: the player's full name (need not be unique).
     """
+    cur = connect().cursor()
+    query = 'INSERT INTO players (name, birthdate,region,team) VALUES (%s, %s, %s, %s,)'
+    cur.execute(query, (name, birthdate, region, teamNumber))
 
 
 

@@ -6,37 +6,33 @@
 import psycopg2
 import bleach
 
-conn = 0
-
 def connect(close = False):
-    """Connect to the PostgreSQL database.  Returns a database connection."""
-    global conn = psycopg2.connect("dbname=tournament")
-    if close:
-      psycopg2.close()
-    else:
-      return conn
+    conn = psycopg2.connect("dbname=tournament") #Connect to database
+    #Close that thang if they request it, otherwise open another one up
+    #psycopg2.close() if close
+    return conn
 
 def deleteMatches():
     """Remove all the match records from the database."""
-    cur = conn.cursor()
-    query = "DELETE tournament matches"
+    cur = connect().cursor()
+    query = 'DELETE FROM matches'
     cur.execute(query)
 
 def deletePlayers():
     """Remove all the player records from the database."""
-    cur = conn.cursor()
-    query = "DELETE tournament players"
+    cur = connect().cursor()
+    query = 'DELETE FROM players'
     cur.execute(query)
 
-def countPlayers(region = '%'):
-    cur = conn.cursor()
+def countPlayers(region = None):
+    cur = connect().cursor()
     region = bleach.clean(region)
-    query = 'SELECT count(name) FROM players WHERE region =  %s;' (region,)
+    query = "SELECT count(name) AS num FROM players"
     cur.execute(query)
+    return cur.fetchone()[0]
 
 
-
-def registerPlayer(name):
+def registerPlayer(name, birthdate = None, region = '', teamNumber = 0):
     """Adds a player to the tournament database.
 
     The database assigns a unique serial id number for the player.  (This
@@ -45,6 +41,8 @@ def registerPlayer(name):
     Args:
       name: the player's full name (need not be unique).
     """
+
+
 
 
 def playerStandings():

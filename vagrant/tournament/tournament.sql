@@ -6,7 +6,7 @@
 -- You can write comments in this file by starting them with two dashes, like
 -- these lines here.
 
-CREATE table players(id serial primary key, name text, birthdate date, region text, team serial, points serial);
+CREATE table players(id serial primary key, name text, birthdate date, region text, team text, points int);
 
 CREATE table matches(id serial primary key, pone text, ptwo text, pthree text, region text);
 

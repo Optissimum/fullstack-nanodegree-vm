@@ -6,25 +6,25 @@
 -- You can write comments in this file by starting them with two dashes, like
 -- these lines here.
 
+DROP TABLE IF EXISTS * CASCADE;
+
 CREATE table players(
   id serial primary key,
   name text,
   birthdate date,
-  region text,
-  team text,
+  tourney text,
   matches integer default 0,
   points integer default 0);
 
 CREATE table matches(
   id serial primary key,
-  pone text,
-  ptwo text,
-  pthree text,
-  region text,
+  pone serial references players(id),
+  ptwo serial references players(id),
+  tourney text,
   winner text);
 
 CREATE view playerpoints AS SELECT id, name, points, matches FROM players ORDER BY points desc;
 
-CREATE view regionsview AS SELECT region, count(region) as num FROM players GROUP BY region ORDER BY num desc;
+CREATE view tourneyview AS SELECT tourney, count(tourney) as num FROM players GROUP BY tourney ORDER BY num desc;
 
-CREATE view twomatch AS SELECT id, pone, ptwo, region FROM matches;
+CREATE view twomatch AS SELECT id, pone, ptwo, tourney FROM matches;

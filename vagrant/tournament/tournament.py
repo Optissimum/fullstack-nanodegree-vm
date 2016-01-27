@@ -27,24 +27,25 @@ def deletePlayers():
     conn.commit()
     conn.close()
 
-def countPlayers(region = None):
+def countPlayers(tourneyName = None):
+    #Return number of players
     conn = connect()
     cur = conn.cursor()
-    region = bleach.clean(region)
+    tourneyName = bleach.clean(tourneyName)
     cur.execute('SELECT count(name) AS num FROM players;')
     num = cur.fetchone()[0]
     conn.close()
     return num
 
-def registerPlayer(name, birthdate = None, region = '', teamNumber = 0):
+def registerPlayer(name, birthdate = '1900-01-01', tourneyName = '', teamNumber = 0):
     conn = connect()
     cur = conn.cursor()
     name = bleach.clean(name)
     birthdate = bleach.clean(birthdate)
-    region = bleach.clean(region)
+    tourneyName = bleach.clean(tourneyName)
     teamNumber = bleach.clean(teamNumber)
-    query = "INSERT INTO players (name, birthdate, region, team) VALUES (%s, %s, %s, %s);"
-    cur.execute(query, (name, birthdate, region, teamNumber))
+    query = "INSERT INTO players (name, birthdate, tourneyName, team) VALUES (%s, %s, %s, %s);"
+    cur.execute(query, (name, birthdate, tourneyName, teamNumber))
     conn.commit()
     conn.close()
 
@@ -57,16 +58,36 @@ def playerStandings():
     conn.close()
     return standings
 
-def reportMatch(winner, loser, middler = None, region = None):
+def reportMatch(winner, loser, tourneyName):
     #Records the outcome of a single match between two players.
     conn = connect()
     cur = conn.cursor()
-    query = "INSERT INTO matches (pone, ptwo, pthree, region) VALUES (%s, %s, %s, %s);"
-    cur.execute(query, (winner, loser, middler, region))
+    winner = bleach.clean(winner)
+    loser = bleach.clean(loser)
+    tourneyName = bleach.clean(tourneyName)
+    query = "INSERT INTO matches (pone, ptwo, tourneyName, winner) VALUES (%s, %s, %s, %s);"
+    cur.execute(query, (winner, loser,tourneyName, winner))
     conn.commit()
     conn.close()
 
-#def swissPairings():
+def tournamentList():
+    #Returns a list of tuples of tournaments and the number of people attending
+    conn = connect()
+    cur = conn.cursor()
+    cur.execute('SELECT * FROM tourneyview;')
+    tournaments = [(row[0], row[1]) for row in cur.fetchall()]
+    conn.close()
+    return tournaments
+
+def swissPairings():
     #Returns a list of pairs of players for the next round of a match.
     #Sort desc, group in 2's which allows for an easy "pairing"
     #Return a list of tuples, each of which contains (id1, name1, id2, name2)
+    conn = connect()
+    cur = conn.cursor()
+    playerSet = []
+    for index, row in enumerate(cur.fetchall()):
+        cur.execute('SELECT * FROM playerpoints ORDER BY points desc LIMIT 2 OFFSET %s') % index
+        playerSet.append((row[0], row[1]) for row in cur.fetchall())
+    conn.close()
+    return playerSet

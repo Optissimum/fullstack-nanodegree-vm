@@ -53,9 +53,14 @@ def playerStandings():
     conn.close()
     return standings
 
-#def reportMatch(winner, loser):
+def reportMatch(winner, loser, middler = None, region = None):
     #Records the outcome of a single match between two players.
-
+    conn = connect()
+    cur = conn.cursor()
+    query = "INSERT INTO matches (pone, ptwo, pthree, region) VALUES (%s, %s, %s, %s);"
+    cur.execute(query, (winner, loser, middler, region))
+    conn.commit()
+    conn.close()
 
 #def swissPairings():
     #Returns a list of pairs of players for the next round of a match.

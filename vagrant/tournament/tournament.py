@@ -39,6 +39,10 @@ def countPlayers(region = None):
 def registerPlayer(name, birthdate = None, region = '', teamNumber = 0):
     conn = connect()
     cur = conn.cursor()
+    name = bleach.clean(name)
+    birthdate = bleach.clean(birthdate)
+    region = bleach.clean(region)
+    teamNumber = bleach.clean(teamNumber)
     query = "INSERT INTO players (name, birthdate, region, team) VALUES (%s, %s, %s, %s);"
     cur.execute(query, (name, birthdate, region, teamNumber))
     conn.commit()

@@ -32,7 +32,8 @@ def countPlayers(tourneyName = None):
     conn = connect()
     cur = conn.cursor()
     tourneyName = bleach.clean(tourneyName)
-    cur.execute('SELECT count(name) AS num FROM players;')
+    query = 'SELECT count(name) AS num FROM players'
+    cur.execute(query) if tourneyName == None else cur.execute(query + str(tourneyName))
     num = cur.fetchone()[0]
     conn.close()
     return num
@@ -44,8 +45,8 @@ def registerPlayer(name, birthdate = '1900-01-01', tourneyName = '', teamNumber 
     birthdate = bleach.clean(birthdate)
     tourneyName = bleach.clean(tourneyName)
     teamNumber = bleach.clean(teamNumber)
-    query = "INSERT INTO players (name, birthdate, tourneyName, team) VALUES (%s, %s, %s, %s);"
-    cur.execute(query, (name, birthdate, tourneyName, teamNumber))
+    query = "INSERT INTO players (name, birthdate, tourney) VALUES (%s, %s, %s);"
+    cur.execute(query, (name, birthdate, tourneyName))
     conn.commit()
     conn.close()
 
@@ -58,14 +59,14 @@ def playerStandings():
     conn.close()
     return standings
 
-def reportMatch(winner, loser, tourneyName):
+def reportMatch(winner, loser, tourneyName = ''):
     #Records the outcome of a single match between two players.
     conn = connect()
     cur = conn.cursor()
     winner = bleach.clean(winner)
     loser = bleach.clean(loser)
     tourneyName = bleach.clean(tourneyName)
-    query = "INSERT INTO matches (pone, ptwo, tourneyName, winner) VALUES (%s, %s, %s, %s);"
+    query = "INSERT INTO matches (pone, ptwo, tourney, winner) VALUES (%s, %s, %s, %s);"
     cur.execute(query, (winner, loser,tourneyName, winner))
     conn.commit()
     conn.close()
@@ -87,7 +88,7 @@ def swissPairings():
     cur = conn.cursor()
     playerSet = []
     for index, row in enumerate(cur.fetchall()):
-        cur.execute('SELECT * FROM playerpoints ORDER BY points desc LIMIT 2 OFFSET %s') % index
+        cur.execute('SELECT * FROM playerpoints ORDER BY points desc LIMIT 2 OFFSET %s') % (index+1)*2
         playerSet.append((row[0], row[1]) for row in cur.fetchall())
     conn.close()
     return playerSet

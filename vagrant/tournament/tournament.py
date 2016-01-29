@@ -58,6 +58,14 @@ def playerStandings():
     conn.close()
     return standings
 
+def matchStandings():
+    conn = connect()
+    cur = conn.cursor()
+    cur.execute('SELECT * FROM matches;')
+    matches = [(row[0], row[1], row[2], row[3], row[4]) for row in cur.fetchall()]
+    conn.close()
+    return matches
+
 def reportMatch(winner, loser, tourneyName = ''):
     #Records the outcome of a single match between two players.
     conn = connect()
@@ -77,20 +85,16 @@ def updatePlayerScores(cursor):
     cursor.execute('SELECT players.id, count(matches) as num FROM matches, players \
     WHERE matches.pone = players.id or matches.ptwo = players.id GROUP BY players.id;')
     matchList = [(row[0], row[1]) for row in cursor.fetchall()]
-    print 'matchList', matchList
     # Update rounds count for each
     for row in matchList:
-        print row
         cursor.execute('UPDATE players SET rounds = %s WHERE id = %s' % (row[1], row[0]))
 
     # Update wins tuple with the wins per player
     cursor.execute('SELECT players.id, count(matches) as num FROM matches, players \
     WHERE matches.winner = players.id GROUP BY players.id;')
     matchList = [(row[0], row[1]) for row in cursor.fetchall()]
-    print 'matchList', matchList
     # Update wins count for winners
     for row in matchList:
-        print row
         cursor.execute('UPDATE players SET points = %s WHERE id = %s' % (row[1], row[0]))
 
 def tournamentList():
@@ -109,7 +113,7 @@ def swissPairings():
     conn = connect()
     cur = conn.cursor()
     playerSet = []
-    for index, row in enumerate(cur.fetchall()):
+    for index, row in cur.fetchall():
         cur.execute('SELECT * FROM playerpoints ORDER BY points desc LIMIT 2 OFFSET %s') % (index+1)*2
         playerSet.append((row[0], row[1]) for row in cur.fetchall())
     conn.close()

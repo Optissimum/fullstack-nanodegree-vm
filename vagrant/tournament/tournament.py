@@ -13,7 +13,7 @@ def deleteMatches():
     #Remove all the match records from the database.
     conn = connect()
     cur = conn.cursor()
-    query = 'DELETE FROM matches;'
+    query = 'TRUNCATE matches CASCADE;'
     cur.execute(query)
     conn.commit()
     cur.close()
@@ -22,7 +22,7 @@ def deletePlayers():
     #Remove all the player records from the database.
     conn = connect()
     cur = conn.cursor()
-    query = 'DELETE FROM players;'
+    query = 'TRUNCATE players CASCADE;'
     cur.execute(query)
     conn.commit()
     conn.close()
@@ -33,19 +33,18 @@ def countPlayers(tourneyName = None):
     cur = conn.cursor()
     tourneyName = bleach.clean(tourneyName)
     query = 'SELECT count(name) AS num FROM players'
-    cur.execute(query) if tourneyName == None else cur.execute(query + str(tourneyName))
+    cur.execute(query) if tourneyName == None else cur.execute(query + ' ' + str(tourneyName))
     num = cur.fetchone()[0]
     conn.close()
     return num
 
-def registerPlayer(name, birthdate = '1900-01-01', tourneyName = '', teamNumber = 0):
+def registerPlayer(name, birthdate = '1900-01-01', tourneyName = ''):
     conn = connect()
     cur = conn.cursor()
     name = bleach.clean(name)
     birthdate = bleach.clean(birthdate)
     tourneyName = bleach.clean(tourneyName)
-    teamNumber = bleach.clean(teamNumber)
-    query = "INSERT INTO players (name, birthdate, tourney) VALUES (%s, %s, %s);"
+    query = "INSERT INTO players (name, birthdate, tourney) VALUES (%s, %s, %s)"
     cur.execute(query, (name, birthdate, tourneyName))
     conn.commit()
     conn.close()
@@ -66,10 +65,33 @@ def reportMatch(winner, loser, tourneyName = ''):
     winner = bleach.clean(winner)
     loser = bleach.clean(loser)
     tourneyName = bleach.clean(tourneyName)
-    query = "INSERT INTO matches (pone, ptwo, tourney, winner) VALUES (%s, %s, %s, %s);"
-    cur.execute(query, (winner, loser,tourneyName, winner))
+    # Add match
+    query = 'INSERT INTO matches (pone, ptwo, tourney, winner) VALUES (%s, %s, %s, %s);'
+    cur.execute(query, (winner, loser, tourneyName, winner))
+    updatePlayerScores(cur)
     conn.commit()
     conn.close()
+
+def updatePlayerScores(cursor):
+    # Update tuple with the matches played totals
+    cursor.execute('SELECT players.id, count(matches) as num FROM matches, players \
+    WHERE matches.pone = players.id or matches.ptwo = players.id GROUP BY players.id;')
+    matchList = [(row[0], row[1]) for row in cursor.fetchall()]
+    print 'matchList', matchList
+    # Update rounds count for each
+    for row in matchList:
+        print row
+        cursor.execute('UPDATE players SET rounds = %s WHERE id = %s' % (row[1], row[0]))
+
+    # Update wins tuple with the wins per player
+    cursor.execute('SELECT players.id, count(matches) as num FROM matches, players \
+    WHERE matches.winner = players.id GROUP BY players.id;')
+    matchList = [(row[0], row[1]) for row in cursor.fetchall()]
+    print 'matchList', matchList
+    # Update wins count for winners
+    for row in matchList:
+        print row
+        cursor.execute('UPDATE players SET points = %s WHERE id = %s' % (row[1], row[0]))
 
 def tournamentList():
     #Returns a list of tuples of tournaments and the number of people attending

@@ -10,7 +10,7 @@ def connect():
     return psycopg2.connect("dbname=tournament") #Connect to database
 
 def deleteMatches():
-    #Remove all the match records from the database.
+    '''Remove all the match records from the database.'''
     conn = connect()
     cur = conn.cursor()
     query = 'TRUNCATE matches CASCADE;'
@@ -19,7 +19,7 @@ def deleteMatches():
     cur.close()
 
 def deletePlayers():
-    #Remove all the player records from the database.
+    '''Remove all the player records from the database.'''
     conn = connect()
     cur = conn.cursor()
     query = 'TRUNCATE players CASCADE;'
@@ -28,7 +28,7 @@ def deletePlayers():
     conn.close()
 
 def countPlayers(tourneyName = None):
-    #Return number of players
+    '''Return number of players in a tournament.'''
     conn = connect()
     cur = conn.cursor()
     tourneyName = bleach.clean(tourneyName)
@@ -39,6 +39,7 @@ def countPlayers(tourneyName = None):
     return num
 
 def registerPlayer(name, birthdate = '1900-01-01', tourneyName = ''):
+    '''Registers a player's name, birthday, and which tournament they are in.'''
     conn = connect()
     cur = conn.cursor()
     name = bleach.clean(name)
@@ -49,16 +50,18 @@ def registerPlayer(name, birthdate = '1900-01-01', tourneyName = ''):
     conn.commit()
     conn.close()
 
-def playerStandings():
-    #Returns a list of the players and their win records, sorted by wins.
+def playerStandings(tournament = ''):
+    '''Returns a list of the players and their win records, sorted by wins.'''
     conn = connect()
     cur = conn.cursor()
-    cur.execute('SELECT * FROM playerpoints;')
+    tournament = bleach.clean(tournament)
+    cur.execute('SELECT * FROM playerpoints WHERE tourney = %s;', (tournament,))
     standings = [(row[0], row[1], row[2], row[3]) for row in cur.fetchall()]
     conn.close()
     return standings
 
 def matchStandings():
+    '''Returns a list of touples of all of the matches.'''
     conn = connect()
     cur = conn.cursor()
     cur.execute('SELECT * FROM matches;')
@@ -67,7 +70,7 @@ def matchStandings():
     return matches
 
 def reportMatch(winner, loser, tourneyName = ''):
-    #Records the outcome of a single match between two players.
+    '''Records the outcome of a single match between two players.'''
     conn = connect()
     cur = conn.cursor()
     winner = bleach.clean(winner)
@@ -98,7 +101,7 @@ def updatePlayerScores(cursor):
         cursor.execute('UPDATE players SET points = %s WHERE id = %s' % (row[1], row[0]))
 
 def tournamentList():
-    #Returns a list of tuples of tournaments and the number of people attending
+    '''Returns a list of tuples of tournaments and the number of people attending'''
     conn = connect()
     cur = conn.cursor()
     cur.execute('SELECT * FROM tourneyview;')
@@ -107,14 +110,14 @@ def tournamentList():
     return tournaments
 
 def swissPairings():
-    #Returns a list of pairs of players for the next round of a match.
-    #Sort desc, group in 2's which allows for an easy "pairing"
-    #Return a list of tuples, each of which contains (id1, name1, id2, name2)
+    '''Return a list of tuples, each of which contains (id1, name1, id2, name2)'''
     conn = connect()
     cur = conn.cursor()
-    playerSet = []
-    for index, row in cur.fetchall():
-        cur.execute('SELECT * FROM playerpoints ORDER BY points desc LIMIT 2 OFFSET %s') % (index+1)*2
-        playerSet.append((row[0], row[1]) for row in cur.fetchall())
+    playerList = []
+    #Dig through playerStandings, concatenating each pair
+    for index, row in enumerate(playerStandings(), start=1):
+        if index % 2 != 0:
+            playerList.append(row[:2] + playerStandings()[index][:2])
+            row[:2] + playerStandings()[index][:2]
     conn.close()
-    return playerSet
+    return playerList

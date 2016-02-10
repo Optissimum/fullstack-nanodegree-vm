@@ -6,7 +6,9 @@
 -- You can write comments in this file by starting them with two dashes, like
 -- these lines here.
 
-DROP TABLE IF EXISTS players, matches CASCADE;
+DROP DATABASE IF EXISTS tournament;
+CREATE DATABASE tournament;
+\c tournament;
 
 CREATE table players(
   id serial primary key,

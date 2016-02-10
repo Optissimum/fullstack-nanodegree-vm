@@ -77,7 +77,7 @@ def reportMatch(winner, loser, tourneyName = ''):
     loser = bleach.clean(loser)
     tourneyName = bleach.clean(tourneyName)
     # Add match
-    query = 'INSERT INTO matches (pone, ptwo, tourney, winner) VALUES (%s, %s, %s, %s);'
+    query = 'INSERT INTO matches (winner, loser, tourney) VALUES (%s, %s, %s);'
     cur.execute(query, (winner, loser, tourneyName, winner))
     updatePlayerScores(cur)
     conn.commit()
@@ -86,7 +86,7 @@ def reportMatch(winner, loser, tourneyName = ''):
 def updatePlayerScores(cursor):
     # Update tuple with the matches played totals
     cursor.execute('SELECT players.id, count(matches) as num FROM matches, players \
-    WHERE matches.pone = players.id or matches.ptwo = players.id GROUP BY players.id;')
+    WHERE matches.winner = players.id or matches.loser = players.id GROUP BY players.id;')
     matchList = [(row[0], row[1]) for row in cursor.fetchall()]
     # Update rounds count for each
     for row in matchList:

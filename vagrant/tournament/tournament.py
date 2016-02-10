@@ -78,7 +78,7 @@ def reportMatch(winner, loser, tourneyName = ''):
     tourneyName = bleach.clean(tourneyName)
     # Add match
     query = 'INSERT INTO matches (winner, loser, tourney) VALUES (%s, %s, %s);'
-    cur.execute(query, (winner, loser, tourneyName, winner))
+    cur.execute(query, (winner, loser, tourneyName))
     updatePlayerScores(cur)
     conn.commit()
     conn.close()

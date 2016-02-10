@@ -20,10 +20,9 @@ CREATE table players(
 
 CREATE table matches(
   id serial primary key,
-  ptwo serial references players(id),
-  pone serial references players(id),
-  tourney text,
-  winner integer);
+  winner serial references players,
+  loser serial references players,
+  tourney text);
 
 CREATE view playerpoints
   AS SELECT id, name, points, rounds

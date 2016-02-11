@@ -14,9 +14,7 @@ CREATE table players(
   id serial primary key,
   name text,
   birthdate date,
-  tourney text,
-  rounds integer default 0,
-  points integer default 0);
+  tourney text);
 
 CREATE table matches(
   id serial primary key,
@@ -24,9 +22,18 @@ CREATE table matches(
   loser serial references players,
   tourney text);
 
-CREATE view playerpoints
-  AS SELECT id, name, points, rounds
-  FROM players
-  ORDER BY points desc;
+CREATE view tourneyview AS SELECT players.tourney, count(players.tourney) as num FROM players, matches GROUP BY players.tourney ORDER BY num desc;
 
-CREATE view tourneyview AS SELECT tourney, count(tourney) as num FROM players GROUP BY tourney ORDER BY num desc;
+CREATE view matchcount
+  AS SELECT players.id, count(players.id) as matches
+  FROM matches, players
+  WHERE loser = players.id or winner = players.id
+  GROUP BY players.id;
+
+CREATE view playerpoints
+  AS SELECT players.id, name, count(winner) as points, count(matchcount.matches) as matches
+  FROM players
+  LEFT JOIN matchcount ON players.id = matchcount.id
+  LEFT JOIN matches ON players.id = winner
+  GROUP BY players.id
+  ORDER BY points desc;

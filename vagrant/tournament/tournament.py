@@ -51,10 +51,9 @@ def registerPlayer(name, birthdate = '1900-01-01', tourneyName = ''):
         query = "INSERT INTO players (name, birthdate, tourney) VALUES (%s, %s, %s)"
         cursor.execute(query, (name, birthdate, tourneyName))
 
-def playerStandings(tournament = ''):
+def playerStandings():
     '''Returns a list of the players and their win records, sorted by wins.'''
     with database_session() as cursor:
-        tournament = bleach.clean(tournament)
         cursor.execute('SELECT * FROM playerpoints;')
         standings = [(row[0], row[1], row[2], row[3]) for row in cursor.fetchall()]
         return standings

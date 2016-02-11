@@ -19,8 +19,7 @@ CREATE table players(
 CREATE table matches(
   id serial primary key,
   winner serial references players,
-  loser serial references players,
-  tourney text);
+  loser serial references players);
 
 CREATE view tourneyview AS SELECT players.tourney, count(players.tourney) as num FROM players, matches GROUP BY players.tourney ORDER BY num desc;
 

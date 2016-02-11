@@ -66,15 +66,14 @@ def matchStandings():
         matches = [(row[0], row[1], row[2], row[3]) for row in cursor.fetchall()]
         return matches
 
-def reportMatch(winner, loser, tourneyName = ''):
+def reportMatch(winner, loser):
     '''Records the outcome of a single match between two players.'''
     with database_session() as cursor:
         winner = bleach.clean(winner)
         loser = bleach.clean(loser)
-        tourneyName = bleach.clean(tourneyName)
         # Add match
-        query = 'INSERT INTO matches (winner, loser, tourney) VALUES (%s, %s, %s);'
-        cursor.execute(query, (winner, loser, tourneyName))
+        query = 'INSERT INTO matches (winner, loser) VALUES (%s, %s);'
+        cursor.execute(query, (winner, loser))
 
 def tournamentList():
     '''Returns a list of tuples of tournaments and the number of people attending'''

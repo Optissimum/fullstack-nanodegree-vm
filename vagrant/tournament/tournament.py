@@ -38,7 +38,10 @@ def countPlayers(tourneyName = None):
     with database_session() as cursor:
         tourneyName = bleach.clean(tourneyName)
         query = 'SELECT count(name) AS num FROM players'
-        cursor.execute(query) if tourneyName == None else cursor.execute(query + ' ' + str(tourneyName))
+        if tourneyName == None:
+            cursor.execute(query)
+        else:
+            cursor.execute(query + 'WHERE tourney = %s', (tourneyName,))
         num = cursor.fetchone()[0]
         return num
 

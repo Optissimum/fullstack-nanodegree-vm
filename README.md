@@ -10,7 +10,7 @@
   $ vagrant up
   $ vagrant ssh
 vm$ cd /vagrant/tournament/
-vm$ psql tournament.sql
+vm$ psql -f tournament.sql
 vm$ python tournament_tester.py
 ```
 
